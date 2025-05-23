@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Träningsprogram</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 700px; margin: auto; }
+    pre { background: #f4f4f4; padding: 1rem; border-radius: 8px; white-space: pre-wrap; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>📋 Träningsprogram</h1>
+  <div id="output">Laddar program...</div>
+
+  <script type="module">
+    const params = new URLSearchParams(window.location.search);
+    const programId = params.get("id");
+    const output = document.getElementById("output");
+
+    const supabaseUrl = "https://YOUR_PROJECT.supabase.co";
+    const supabaseKey = "YOUR_PUBLIC_ANON_KEY";
+
+    const fetchProgram = async () => {
+      if (!programId) {
+        output.innerHTML = "<p class='error'>Ingen program-ID angiven.</p>";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/training_programs?id=eq.${programId}`, {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            Accept: "application/json",
+          },
+        });
+
+        const data = await res.json();
+        if (!data || data.length === 0) {
+          output.innerHTML = "<p class='error'>Programmet hittades inte.</p>";
+          return;
+        }
+
+        const program = data[0];
+        output.innerHTML = `
+          <h2>${program.name}</h2>
+          <p><em>🎯 ${program.goal}</em></p>
+          <pre>${program.ai_response}</pre>
+        `;
+      } catch (err) {
+        output.innerHTML = "<p class='error'>Kunde inte hämta programmet.</p>";
+        console.error(err);
+      }
+    };
+
+    fetchProgram();
+  </script>
+</body>
+</html>
